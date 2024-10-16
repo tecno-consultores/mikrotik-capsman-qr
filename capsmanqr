@@ -26,13 +26,33 @@ function clean_1() {
 	rm -rf $donde/qr/
 }
 
+trap "clean_1; exit" 0 1 2 3 9 15
+clear
+
 if [[ "$EUID" != "0" ]]; then
 	echo -e "\e[00;31mERROR: Debes ser root.\e[00m"
 	exit 1
 fi
 
-trap "clean_1; exit" 0 1 2 3 9 15
-clear
+if ! [[ $(dpkg --get-selections | grep -w "swaks" | awk '{print $1}' | head -1) = swaks ]]; then
+	echo "SWAKS no esta instalado."
+	exit 1
+fi
+
+if ! [[ $(dpkg --get-selections | grep -w "qrencode" | awk '{print $1}' | head -1) = qrencode ]]; then
+	echo "QRENCODE no esta instalado."
+	exit 1
+fi
+
+if ! [[ $(dpkg --get-selections | grep -w "ssh" | awk '{print $1}' | head -1) = ssh ]]; then
+	echo "SSH no esta instalado."
+	exit 1
+fi
+
+if ! [[ $(dpkg --get-selections | grep -w "tar" | awk '{print $1}' | head -1) = tar ]]; then
+	echo "SSH no esta instalado."
+	exit 1
+fi
 
 mkdir -p $donde/qr
 
