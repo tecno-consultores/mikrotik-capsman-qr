@@ -56,16 +56,29 @@ fi
 
 mkdir -p $donde/qr
 
-for i in ${ips[@]}; do
-	clave=$(dd if=/dev/urandom bs=1 count=64 2>/dev/null | base64 -w 0 | tr -dc _A-Z-a-z-0-9 | cut -c 1-8)
-	echo "IP: $i"
-	echo "IP: $i" >> $archi
-	echo "Clave: $clave"
-	echo "Clave: $clave" >> $archi
-	echo "=========================" >> $archi
-	$qre "WIFI:T:WPA;S:$nssid;P:$clave;;" -o $donde/qr/$i.png
-	$cssh $suser@$i "caps-man security set visita passphrase=$clave"
-done
+if [[ -z $1 ]]; then
+	for i in ${ips[@]}; do
+		clave=$(dd if=/dev/urandom bs=1 count=64 2>/dev/null | base64 -w 0 | tr -dc _A-Z-a-z-0-9 | cut -c 1-8)
+		echo "IP: $i"
+		echo "IP: $i" >> $archi
+		echo "Clave: $clave"
+		echo "Clave: $clave" >> $archi
+		echo "=========================" >> $archi
+		$qre "WIFI:T:WPA;S:$nssid;P:$clave;;" -o $donde/qr/$i.png
+		$cssh $suser@$i "caps-man security set visita passphrase=$clave"
+	done
+else
+	for i in ${ips[@]}; do
+		echo "IP: $i"
+		echo "IP: $i" >> $archi
+		echo "Clave: $1"
+		echo "Clave: $1" >> $archi
+		echo "=========================" >> $archi
+		$qre "WIFI:T:WPA;S:$nssid;P:$1;;" -o $donde/qr/$i.png
+		$cssh $suser@$i "caps-man security set visita passphrase=$clave"
+	done
+fi
+
 
 $ctar $donde/qr-$fecha.tar.gz $donde/qr/
 
