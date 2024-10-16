@@ -3,6 +3,8 @@
 # Licence: GPL-2
 LC_ALL=C
 SECONDS=0
+LOCKFILE="/tmp/$(basename $0)_$(whoami)"
+LOCKFD="150"
 fecha=$(date +%d-%m-%Y)
 cssh="ssh -4 -C -q -o StrictHostKeyChecking=no -o ConnectTimeout=3 -p 22"
 suser="USUARIO"
@@ -21,12 +23,26 @@ ips=(192.168.0.1 192.168.0.2 192.168.0.3 192.168.0.4 192.168.0.5 192.168.0.6)
 correo='swaks -4 --to $cdestinos --from $cfrom --server $cserver:$cport -tls --auth LOGIN --auth-user $cuser --auth-password $cpass'
 
 function clean_1() {
+	rm -f /tmp/$(basename $0)_$(whoami)
+	rm -f /run/$(basename $0).pid
 	rm -f $archi
 	rm -f $donde/*.tar.gz
 	rm -rf $donde/qr/
 }
 
+function lock() {
+	echo {LOCKFD}>$LOCKFILE
+	flock -n $LOCKFD
+}
+
+function exit_error() {
+	echo "ERROR: Ya hay una instancia en ejecución. Saliendo"
+	exit 1
+}
+
+echo "$BASHPID" > /run/$(basename $0).pid
 trap "clean_1; exit" 0 1 2 3 9 15
+lock || exit_error
 clear
 
 if [[ "$EUID" != "0" ]]; then
